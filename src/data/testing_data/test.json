@@ -1,0 +1,17 @@
+{
+    "id": 2595,
+    "nome": "Skylit Midtown Castle",
+    "host_id": 2845,
+    "host_name": "Jennifer",
+    "bairro_group": "Manhattan",
+    "bairro": "Midtown",
+    "latitude": 40.75362,
+    "longitude": -73.98377,
+    "room_type": "Entire home/apt",
+    "minimo_noites": 1,
+    "numero_de_reviews": 45,
+    "ultima_review": "2019-05-21",
+    "reviews_por_mes": 0.38,
+    "calculado_host_listings_count": 2,
+    "disponibilidade_365": 355
+}

@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 module_path = os.path.abspath(os.path.join(os.pardir))
 if module_path not in sys.path:
     sys.path.append(module_path)
@@ -16,7 +17,7 @@ class DataProcessor:
         with open(model_path, 'rb') as file:
             self.model = pickle.load(file)
     
-    def drop_columns(self, columns: list = ['id', 'nome', 'host_name', 'ultima_review','bairro']):
+    def drop_columns(self, columns: list = ['id', 'nome', 'host_name', 'ultima_review']):
         self.df.drop(columns=columns, inplace=True)
         return self.df
     
@@ -25,14 +26,16 @@ class DataProcessor:
         return self.df
     
     def dropna_and_duplicated(self):
-        self.df.dropna()
-        self.df.drop_duplicates()
+        self.df.dropna(inplace=True)
+        self.df.drop_duplicates(inplace=True)
         return self.df
     
-    # def get_bairro_mean_prices(self, bairro: list):
-    #     self.df = get_bairro_mean_price(self.df,bairro)
-    #     self.df.drop(columns=['bairro'], inplace=True)
-    #     return self.df
+    def get_bairro_mean_prices(self):
+        mean_price_df = pd.read_csv('../../src/data/silver/media_preco_bairros.csv')
+        bairro_mean_price_map = dict(zip(mean_price_df['bairro'], mean_price_df['media_bairro']))
+        self.df['media_bairro'] = self.df['bairro'].map(bairro_mean_price_map)
+        self.df.drop(columns=['bairro'], inplace=True)
+        return self.df
     
     def one_hot_encoding(self, columns: list):
         self.df = pd.get_dummies(self.df, columns=columns, prefix=columns)
@@ -41,69 +44,54 @@ class DataProcessor:
     def prepare_data_to_model(self, bairro_group: list = ['bairro_group'], room_type: list = ['room_type']):
         self.drop_columns()
         self.fillna()
-        # self.get_bairro_mean_prices(['bairro'])  # Calcula a média de preços por bairro
+        self.get_bairro_mean_prices()
         self.dropna_and_duplicated()
-        self.one_hot_encoding(bairro_group)
-        self.one_hot_encoding(room_type)
+        self.one_hot_encoding(bairro_group + room_type)  
         
-        # Lista das colunas esperadas pelo modelo
         colunas_esperadas = [
-            "latitude", "longitude", "minimo_noites", "numero_de_reviews", 
-            "reviews_por_mes", "calculado_host_listings_count", "disponibilidade_365", 
-            "bairro_group_Manhattan", "room_type_Entire home/apt", "bairro_group_Queens", 
-            "bairro_group_Bronx", "bairro_group_Brooklyn", "bairro_group_Staten Island",
-            "room_type_Private room", "room_type_Shared room", "media_bairro", "host_id"
+            "host_id", 
+            "latitude", 
+            "longitude", 
+            "minimo_noites", 
+            "numero_de_reviews", 
+            "reviews_por_mes", 
+            "calculado_host_listings_count", 
+            "disponibilidade_365", 
+            "media_bairro", 
+            "bairro_group_Bronx", 
+            "bairro_group_Brooklyn", 
+            "bairro_group_Manhattan", 
+            "bairro_group_Queens", 
+            "bairro_group_Staten Island", 
+            "room_type_Entire home/apt",
+            "room_type_Hotel room", 
+            "room_type_Private room", 
+            "room_type_Shared room",
+            
         ]
         
-        # Garantir que todas as colunas esperadas estejam presentes no DataFrame
+        # Garantir colunas faltantes (preencher com 0)
         for coluna in colunas_esperadas:
             if coluna not in self.df.columns:
-                self.df[coluna] = 0  # Adiciona a coluna com valor 0 se estiver ausente
+                self.df[coluna] = 0
         
-        # Garantir que as colunas estejam na mesma ordem do que o modelo espera
+        # Reordenar colunas exatamente como o modelo espera
         self.df = self.df[colunas_esperadas]
         
         return self.df
 
-    
     def test_model(self, X_test, y_test):
         y_pred = self.model.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
         return y_pred, accuracy
-    
-    
-dados_teste = pd.DataFrame([{
-    'id': 2595,
-    'nome': 'Skylit Midtown Castle',
-    'host_id': 2845,
-    'host_name': 'Jennifer',
-    'bairro_group': 'Manhattan',
-    'bairro': 'Midtown',
-    'latitude': 40.75362,
-    'longitude': -73.98377,
-    'room_type': 'Entire home/apt',
-    'minimo_noites': 1,
-    'numero_de_reviews': 45,
-    'ultima_review': '2019-05-21',
-    'reviews_por_mes': 0.38,
-    'calculado_host_listings_count': 2,
-    'disponibilidade_365': 355
-}])
 
-processor = DataProcessor(dados_teste, "../../src/models/xg_reg_model.pkl")
+with open('../../src/data/testing_data/test.json', 'r', encoding='utf-8') as file:
+    data_teste = pd.DataFrame([json.load(file)])
+processor = DataProcessor(data_teste, "../../src/models/random_forest_model.pkl")
 
 dados_processados = processor.prepare_data_to_model()
-
-colunas_treinamento = ["latitude", "longitude", "minimo_noites", "numero_de_reviews", 
-                       "reviews_por_mes", "calculado_host_listings_count", "disponibilidade_365", 
-                       "bairro_group_Manhattan", "room_type_Entire home/apt"]
-
-for coluna in colunas_treinamento:
-    if coluna not in dados_processados.columns:
-        dados_processados[coluna] = 0
-
-X_teste = dados_processados[colunas_treinamento]
+X_teste = dados_processados.copy()
 
 y_pred = processor.model.predict(X_teste)
+print("Previsão do modelo (revertida):", np.expm1(y_pred[0]))
 
-print("Previsão do modelo:", y_pred[0])
