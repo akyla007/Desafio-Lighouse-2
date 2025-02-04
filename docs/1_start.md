@@ -14,7 +14,7 @@ Este documento descreve como instalar as dependências do projeto a partir do ar
 1. **Crie um ambiente virtual**:
    
    Navegue até o diretório onde o arquivo `pyproject.toml` está localizado e crie um ambiente virtual:
-   ```sh
+   
    - No Windows:
      ```sh
      python -m venv venv
@@ -23,7 +23,6 @@ Este documento descreve como instalar as dependências do projeto a partir do ar
      ```sh
      python -m venv venv
      ```
-   ```
 
 2. **Ative o ambiente virtual**:
    
