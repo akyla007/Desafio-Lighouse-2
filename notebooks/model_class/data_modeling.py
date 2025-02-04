@@ -46,10 +46,10 @@ class DataProcessor:
         self.fillna()
         self.get_bairro_mean_prices()
         self.dropna_and_duplicated()
-        self.one_hot_encoding(bairro_group + room_type)  
+        
+        self.one_hot_encoding(bairro_group + room_type)
         
         colunas_esperadas = [
-            "host_id", 
             "latitude", 
             "longitude", 
             "minimo_noites", 
@@ -70,12 +70,10 @@ class DataProcessor:
             
         ]
         
-        # Garantir colunas faltantes (preencher com 0)
         for coluna in colunas_esperadas:
             if coluna not in self.df.columns:
                 self.df[coluna] = 0
         
-        # Reordenar colunas exatamente como o modelo espera
         self.df = self.df[colunas_esperadas]
         
         return self.df
@@ -87,9 +85,10 @@ class DataProcessor:
 
 with open('../../src/data/testing_data/test.json', 'r', encoding='utf-8') as file:
     data_teste = pd.DataFrame([json.load(file)])
-processor = DataProcessor(data_teste, "../../src/models/random_forest_model.pkl")
+processor = DataProcessor(data_teste, "../../src/models/xg_reg_model.pkl")
 
 dados_processados = processor.prepare_data_to_model()
+
 X_teste = dados_processados.copy()
 
 y_pred = processor.model.predict(X_teste)
