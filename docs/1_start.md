@@ -19,6 +19,7 @@ Este documento descreve como instalar as dependências do projeto a partir do ar
      ```sh
      python -m venv venv
      ```
+     
    - No Linux:
      ```sh
      python -m venv venv
