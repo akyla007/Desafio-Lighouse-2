@@ -1,12 +1,15 @@
-# Desafio Lighthouse 2
+# Desafio Lighthouse
 
 ## Descrição
 Este projeto é uma aplicação desenvolvida como parte do Desafio Lighthouse. O objetivo do projeto é fazer um modelo de inteligência artificial para estimar um preço para as locações Airbnb em Nova York.
 
 ## Estrutura do Projeto
 - `/src`: Contém os datasets estudados e modelos em formato .pkl .
+- `/src/data`: Contém a organização dos datasets usados, foi escolhido o formato medalhão.
+- `/src/models`: Contém a organização dos modelos usados em .pkl .
 - `/docs`: Contém a documentação do projeto.
 - `/notebooks`: Contém os notebooks que realizaram a exploração dos dados e criação de modelos.
+- `/images`: Contém as imagens usadas para relatório.
 
 
 ## Instalação
